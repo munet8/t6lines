@@ -1,0 +1,464 @@
+#include "hsp3dish.as"
+#include "mulines.as"
+
+title "munet lines"
+
+;-------------------------------------------------------------------------------
+;
+; 最初期設定
+;
+;-------------------------------------------------------------------------------
+
+*first
+
+getreq int_os, SYSREQ_PLATFORM           ; OS識別
+flag_is_ios     = (int_os = 1)
+flag_is_android = (int_os = 2)
+flag_is_windows = (int_os = 0)
+
+; フォント画像のロード（半角）
+celload "fon_cha1.png", 2
+celdiv 2, g_font_png_x, g_font_png_y, 0, 0
+
+; フォント画像のロード（全角）
+;celload "fon_cha2.png", 3
+;celdiv 3, g_font_png_y, g_font_png_y, 0, 0
+
+; フォント画像のロード（全角）
+celload "fon_ball.png", 4
+celdiv 4, 48, 48, 0, 0
+
+int_mousex = 0
+int_mousey = 0
+
+; フィールド配列
+dim arr_field, 9, 9
+
+; フィールド配列・移動可能
+MovableArrInit
+
+; スコア
+int_score = 0
+
+int_selected_x = -1
+int_selected_y = -1
+
+int_vanish = 255
+int_gameover = 1
+
+; 乱数初期化
+randomize
+
+; フィールド初期配置
+gosub *make_next
+gosub *ball_set
+gosub *make_next
+
+*play
+
+	; 入力
+	stick int_stk
+	if ( int_stk & 256 ) {
+		int_mousex = mousex
+		int_mousey = mousey
+
+		i = (( 20 * int_mousex / g_screen_x ) - 1 ) / 2
+		j = (( 20 * int_mousey / g_screen_view_y ) - 1 ) / 2
+		if (( 0 <= i ) & ( i < 9 ) & ( 0 <= j ) & ( j < 9 )) {
+			if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 ) & ( MovableArrGet(i, j) )) {
+				if ( arr_field(i, j) = 0 ) {
+					; 選択済み＆対象が空白->移動と配布
+					arr_field(i, j) = arr_field(int_selected_x, int_selected_y)
+					arr_field(int_selected_x, int_selected_y) = 0
+					int_selected_x = -1
+					int_selected_y = -1
+
+					int_comp_x = i
+					int_comp_y = j
+					gosub *complete_check
+
+					if ( arr_field( int_comp_x, int_comp_y ) > 0 ) {
+						; 消えなかったら配布する
+						gosub *ball_set
+						gosub *make_next
+					}
+				} else {
+					; 選択状態＆対象が石->選択
+					int_selected_x = i
+					int_selected_y = j
+					MovableArrInit
+					MovableArrSet i, j
+				}
+			} else {
+				; 未選択状態->選択
+				if ( arr_field(i, j) > 0 ) {
+					int_selected_x = i
+					int_selected_y = j
+					MovableArrInit
+					MovableArrSet i, j
+				}
+			}
+		}
+		if ( int_mousey >= ( g_screen_view_y + g_font_y )) {
+			if ( int_mousex < ( g_screen_x / 2 )) {
+				goto *first
+			} else {
+				gosub *exit
+			}
+		}
+	}
+
+	; ゲームオーバー判定
+	if ( int_gameover = 0 ) :goto *dead
+
+	; 描画
+	redraw 0
+	gfilter 1
+
+	color 0, 0, 0
+	boxf 0, 0, g_screen_x, g_screen_y
+
+	if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 )) {
+		color 85, 85, 85
+		i = ( 2 * int_selected_x + 1 ) * g_screen_x / 20
+		j = ( 2 * int_selected_y + 1 ) * g_screen_view_y / 20
+		m = ( 2 * int_selected_x + 3 ) * g_screen_x / 20
+		n = ( 2 * int_selected_y + 3 ) * g_screen_view_y / 20
+		boxf i, j, m, n
+	}
+
+	; 描画・ボール
+	f = double( 0.1 * g_screen_x / g_ball_size )
+	g = double( 0.1 * g_screen_view_y / g_ball_size )
+	for i, 0, 9, 1
+		for j, 0, 9, 1
+			m = ( 2 * i + 1 ) * g_screen_x / 20
+			n = ( 2 * j + 1 ) * g_screen_view_y / 20
+			pos m, n
+			if ( arr_field(i, j) ) {
+				gmode 5, 0, 0, 255
+				celput 4, arr_field(i, j), f, g
+				gmode 0
+			} else {
+				if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 ) & ( MovableArrGet(i, j) = 0 )) {
+					color 255, 255, 255
+					m = ( 2 * i + 3 ) * g_screen_x / 20
+					n = ( 2 * j + 3 ) * g_screen_view_y / 20
+					line m, n
+				}
+			}
+		next
+	next
+
+	; 描画・縦線
+	color 255, 255, 255
+	m =      g_screen_view_y / 20
+	n = 19 * g_screen_view_y / 20
+	for i, 0, 10, 1
+		j = ( 2 * i + 1 ) * g_screen_x / 20
+		line j, m, j, n
+	next
+
+	; 描画・横線
+	m =      g_screen_x / 20
+	n = 19 * g_screen_x / 20
+	for i, 0, 10, 1
+		j = ( 2 * i + 1 ) * g_screen_view_y / 20
+		line m, j, n, j
+	next
+
+	; Score
+	pos g_font_x, g_screen_view_y
+	fprint "Score: ", 255
+	pos ( 11 - log10(int_score) ) * g_font_x, g_screen_view_y
+	fprint "" + int_score, 255
+
+	; Next
+	pos g_screen_x / 2, g_screen_view_y
+	fprint "Next: ", 255
+	f = double( 1.0 * g_font_y / g_ball_size )
+	gmode 0
+	for i, 0, 3, 1
+		pos ( g_screen_x / 2 ) + (( i + 3 ) * g_font_y ), g_screen_view_y
+		celput 4, arr_next(i), f, f
+	next
+
+	; ステータスバーの表示
+	gosub *status_bar
+
+	redraw 1
+	await 16
+
+	goto *play
+
+*dead
+	redraw 0
+	gfilter 1
+
+	stick int_stk, 256
+	if ( int_stk & 128 ) :gosub *exit
+
+	; 描画
+	color int_vanish / 5, 0, 0
+	boxf 0, 0, g_screen_x, g_screen_y
+
+	; 描画・ボール
+	f = double( 0.1 * g_screen_x / g_ball_size )
+	g = double( 0.1 * g_screen_view_y / g_ball_size )
+	for i, 0, 9, 1
+		for j, 0, 9, 1
+			m = ( 2 * i + 1 ) * g_screen_x / 20
+			n = ( 2 * j + 1 ) * g_screen_view_y / 20
+			pos m, n
+			if ( arr_field(i, j) ) {
+				gmode 5, 0, 0, int_vanish
+				celput 4, arr_field(i, j), f, g
+				gmode 0
+			} else {
+				if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 ) & ( MovableArrGet(i, j) = 0 )) {
+					color 255, 255, 255
+					m = ( 2 * i + 3 ) * g_screen_x / 20
+					n = ( 2 * j + 3 ) * g_screen_view_y / 20
+					line m, n
+				}
+			}
+		next
+	next
+
+	; 描画・縦線
+	color int_vanish, int_vanish, int_vanish
+	m =      g_screen_view_y / 20
+	n = 19 * g_screen_view_y / 20
+	for i, 0, 10, 1
+		j = ( 2 * i + 1 ) * g_screen_x / 20
+		line j, m, j, n
+	next
+
+	; 描画・横線
+	m =      g_screen_x / 20
+	n = 19 * g_screen_x / 20
+	for i, 0, 10, 1
+		j = ( 2 * i + 1 ) * g_screen_view_y / 20
+		line m, j, n, j
+	next
+
+	; Score
+	pos g_font_x, g_screen_view_y
+	fprint "Score: ", 255
+	pos ( 11 - log10(int_score) ) * g_font_x, g_screen_view_y
+	fprint "" + int_score, 255
+
+	; Next
+	pos g_screen_x / 2, g_screen_view_y
+	fprint "Next: ", 255
+	f = double( 1.0 * g_font_y / g_ball_size )
+	gmode 0
+	for i, 0, 3, 1
+		pos ( g_screen_x / 2 ) + (( i + 3 ) * g_font_y ), g_screen_view_y
+		celput 4, arr_next(i), f, f
+	next
+
+	gosub *status_bar
+
+	if ( int_vanish > 0 ) :int_vanish-=5 :else :goto *menu
+
+	redraw 1
+	await 16
+	goto *dead
+
+*menu
+	redraw 0
+	gfilter 1
+
+	; 描画
+	color 0, 0, 0
+	boxf 0, 0, g_screen_x, g_screen_y
+
+	stick int_stk, 0 :if ( int_stk & 256 ) {
+		int_mousex = mousex
+		int_mousey = mousey
+		if ( int_mousey >= ( g_screen_view_y + g_font_y )) {
+			if ( int_mousex < ( g_screen_x / 2 )) {
+				goto *first
+			} else {
+				gosub *exit
+			}
+		}
+	} else {
+		if ( int_stk ) {
+			if ( int_stk & 128 ) :gosub *exit :else :goto *first
+		}
+	}
+
+	pos 2 * g_font_x, 1 * g_font_y
+	fprint "Your score is " + int_score + ".", 255
+	pos 2 * g_font_x, 3 * g_font_y
+	fprint "munet lines", 255
+	pos 2 * g_font_x, 4 * g_font_y
+	fprint "2012(C) m-ushi", 255
+
+	gosub *status_bar
+
+	redraw 1
+	await 16
+
+	goto *menu
+
+; 新しい球を降らせる
+*ball_set
+	n = 0
+	for j, 0, 9, 1
+		for k, 0, 9, 1
+			if ( arr_field(j, k) = 0 ) :n++
+			if ( n = 3 ) :_break
+		next
+		if ( n = 3 ) :_break
+	next
+
+	dim arr_set, 3, 2
+	for i, 0, n, 1
+		do
+			j = rnd(9) :k = rnd(9)
+		until ( arr_field(j, k) = 0 )
+		arr_field(j, k) = arr_next(i)
+		arr_set(i, 0) = j
+		arr_set(i, 1) = k
+	next
+
+	for i, 0, n, 1
+		int_comp_x = arr_set(i, 0)
+		int_comp_y = arr_set(i, 1)
+		gosub *complete_check
+	next
+
+	; ゲームオーバー判定
+	int_gameover = 0
+	for j, 0, 9, 1
+		for k, 0, 9, 1
+			if ( arr_field(j, k) = 0 ) :int_gameover = 1
+			if ( int_gameover ) :_break
+		next
+		if ( int_gameover ) :_break
+	next
+
+	return
+
+; NEXTの設定
+*make_next
+	dim arr_next, 3
+	for i, 0, 3, 1
+		arr_next(i) = rnd(7) + 1
+	next
+	return
+
+; 移動可能チェック
+*movable_check
+	dim arr_movable, 9, 9
+	cx = int_selected_x
+	cy = int_selected_y
+
+*movable_iter
+	ci = 0
+	if ( 0 <= cx ) & ( cx < 9 ) & ( 0 <= cy ) & ( cy < 9 ) {
+	} else {
+		ci = 1
+	}
+
+	if ( ci ) :goto *movable_iter
+
+	return
+
+; 完成チェック
+; 事前に座標情報 int_comp_x int_comp_y を与えておく
+*complete_check
+	dim int_comp_d, 8
+	; 配列の添字と向き関係
+	; 567
+	; 3 4
+	; 012
+
+	; 同じ色探し
+	for ci, 0, 8, 1
+		cx = int_comp_x
+		cy = int_comp_y
+		do
+			gosub *complete_cursor
+			if (( cx < 0 ) || ( 8 < cx ) || ( cy < 0 ) || ( 8 < cy )) :_break
+			if ( arr_field( cx, cy ) = arr_field( int_comp_x, int_comp_y )) {
+				int_comp_d(ci)++
+			} else {
+				_break
+			}
+		until (0)
+	next
+
+	; 同じ色消し
+	for cj, 0, 4, 1
+		ck = 7 - cj
+		cx = int_comp_d(cj) + int_comp_d(ck)
+
+		if ( cx > 1 ) {
+			; 十字消し
+			if (( cj & 1 ) = 0 ) {
+				cm = cj + 2
+				cn = ck - 2
+				;int_comp_cross_x = 
+			}
+			; 通常消し
+			if ( cx > 3 ) {
+				int_score += EvalScore( cx + 1 )
+
+				arr_field( int_comp_x, int_comp_y ) = 0
+
+				ci = cj :gosub *complete_erase
+				ci = ck :gosub *complete_erase
+				_break
+			}
+		}
+	next
+
+	return
+
+*complete_erase
+	cx = int_comp_x
+	cy = int_comp_y
+	for co, 0, int_comp_d(ci), 1
+		gosub *complete_cursor
+		arr_field( cx, cy ) = 0
+	next
+	return
+
+*complete_cursor
+	switch ci
+	case 0: cx--: cy++ :swbreak
+	case 1: cy++       :swbreak
+	case 2: cx++: cy++ :swbreak
+	case 3: cx--       :swbreak
+	case 4: cx++       :swbreak
+	case 5: cx--: cy-- :swbreak
+	case 6: cy--       :swbreak
+	case 7: cx++: cy-- :swbreak
+	swend
+	return
+
+*status_bar
+	; ステータスバーの表示
+	color 85, 85, 102
+	boxf 0, g_screen_view_y + g_font_y, g_screen_x, g_screen_y
+
+	color 255, 255, 255
+	line 0, g_screen_view_y + g_font_y, g_screen_x, g_screen_view_y + g_font_y
+	line g_screen_x / 2, g_screen_view_y + g_font_y, g_screen_x / 2, g_screen_y
+
+	pos ( 1 * g_screen_x / 4 ) - ( 5 * g_font_x / 2 ), g_screen_view_y + g_font_y
+	fprint "Retry", 255
+	if ( flag_is_ios ^ 1 ) {
+		pos ( 3 * g_screen_x / 4 ) - ( 2 * g_font_x ), g_screen_view_y + g_font_y
+		fprint "Exit", 255
+	}
+
+	return
+
+*exit
+	if ( flag_is_ios ^ 1 ) :end 0
+	return

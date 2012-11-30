@@ -1,0 +1,64 @@
+; fon_char2.bmp 作成
+
+g_x = 48
+g_y = 48
+
+screen 0, g_x*8, g_y*1, 0
+
+color 0, 0, 0
+;color 255, 255, 255
+j=0
+boxf 0, j*g_y, 12*g_x, (j+1)*g_y
+for i, 0, 12, 1
+	color 255, 255, 255
+
+	c=""
+	if ( i >= 1 ) {
+		c = "●"
+		switch i
+		case 1 :r = 238: g =   0: b =  51 :swbreak
+		case 2 :r = 255: g = 255: b =   0 :swbreak
+		case 3 :r =   0: g = 187: b =  34 :swbreak
+		case 4 :r =   0: g = 221: b = 255 :swbreak
+		case 5 :r =   0: g =  34: b = 255 :swbreak
+		case 6 :r = 255: g =   0: b = 221 :swbreak
+		case 7 :r = 153: g = 153: b = 153 :swbreak
+		swend
+
+		color 204 + (r/5), 204 + (g/5), 204 + (b/5)
+		font "VL ゴシック",48
+		pos i*g_x+1, j*g_y-6
+		mes c
+
+		color 170 + (r/3), 170 + (g/3), 170 + (b/3)
+		font "VL ゴシック",46
+		pos i*g_x+2, j*g_y-5
+		mes c
+
+		color r, g, b
+		font "VL ゴシック",44
+		pos i*g_x+3, j*g_y-4
+		mes c
+
+	}
+next
+
+; 補助線
+
+color 102,102,102
+
+/*for i, 0, 7, 1
+	line 0, i*g_y, 16*g_x, i*g_y
+next
+
+for i, 0, 17, 1
+	line i*g_x, 0, i*g_x, 512
+next*/
+onclick *save
+stop
+
+*save
+
+bmpsave "fon_ball.bmp"
+
+end
