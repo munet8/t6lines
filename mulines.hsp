@@ -62,8 +62,8 @@ gosub *make_next
 		int_mousex = mousex
 		int_mousey = mousey
 
-		i = (( 20 * int_mousex / g_screen_x ) - 1 ) / 2
-		j = (( 20 * int_mousey / g_screen_view_y ) - 1 ) / 2
+		i = ((( 20 * int_mousex / g_screen_x ) + 1 ) / 2 ) - 1
+		j = ((( 20 * int_mousey / g_screen_view_y ) + 1 ) / 2) -1
 		if (( 0 <= i ) & ( i < 9 ) & ( 0 <= j ) & ( j < 9 )) {
 			if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 ) & ( MovableArrGet(i, j) )) {
 				if ( arr_field(i, j) = 0 ) {
@@ -84,18 +84,12 @@ gosub *make_next
 					}
 				} else {
 					; 選択状態＆対象が石->選択
-					int_selected_x = i
-					int_selected_y = j
-					MovableArrInit
-					MovableArrSet i, j
+					gosub *select
 				}
 			} else {
 				; 未選択状態->選択
 				if ( arr_field(i, j) > 0 ) {
-					int_selected_x = i
-					int_selected_y = j
-					MovableArrInit
-					MovableArrSet i, j
+					gosub *select
 				}
 			}
 		}
@@ -215,6 +209,7 @@ gosub *make_next
 				celput 4, arr_field(i, j), f, g
 				gmode 0
 			} else {
+				; 描画・移動できません
 				if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 ) & ( MovableArrGet(i, j) = 0 )) {
 					color 255, 255, 255
 					m = ( 2 * i + 3 ) * g_screen_x / 20
@@ -293,7 +288,7 @@ gosub *make_next
 	pos 2 * g_font_x, 1 * g_font_y
 	fprint "Your score is " + int_score + ".", 255
 	pos 2 * g_font_x, 3 * g_font_y
-	fprint "munet lines", 255
+	fprint "munet lines v1.1", 255
 	pos 2 * g_font_x, 4 * g_font_y
 	fprint "2012(C) m-ushi", 255
 
@@ -368,6 +363,15 @@ gosub *make_next
 
 	return
 
+; 選択
+; 事前に座標情報 i, j を与えておく。分かりづらいな
+*select
+	int_selected_x = i
+	int_selected_y = j
+	MovableArrInit
+	MovableArrSet i, j
+	return
+
 ; 完成チェック
 ; 事前に座標情報 int_comp_x int_comp_y を与えておく
 *complete_check
@@ -378,67 +382,71 @@ gosub *make_next
 	; 012
 
 	; 同じ色探し
-	for ci, 0, 8, 1
-		cx = int_comp_x
-		cy = int_comp_y
-		do
-			gosub *complete_cursor
-			if (( cx < 0 ) || ( 8 < cx ) || ( cy < 0 ) || ( 8 < cy )) :_break
-			if ( arr_field( cx, cy ) = arr_field( int_comp_x, int_comp_y )) {
-				int_comp_d(ci)++
-			} else {
-				_break
-			}
-		until (0)
-	next
+	LineCheckAll int_comp_x, int_comp_y
 
 	; 同じ色消し
 	for cj, 0, 4, 1
 		ck = 7 - cj
-		cx = int_comp_d(cj) + int_comp_d(ck)
+		clen = int_comp_d(cj) + int_comp_d(ck)
 
-		if ( cx > 1 ) {
-			; 十字消し
-			if (( cj & 1 ) = 0 ) {
-				cm = cj + 2
-				cn = ck - 2
-				;int_comp_cross_x = 
+		; 十字消し
+		if ( clen > 1 ) {
+			cm = cj ^ 2
+			cn = ck ^ 2
+			cx = int_comp_x
+			cy = int_comp_y
+			; 走査する場所・先端に移動
+			for cp, 0, int_comp_d(ck), 1
+				LineCursor cx, cy, ck
+			next
+			; １個ずつ移動して十字調査
+			for cp, 0, clen + 1, 1
+				; ５個揃ってない石の場合、両端はスルー
+				if (( clen < 4 ) & (( cp = 0 ) | ( cp = clen ))) {
+					LineCursor cx, cy, cj
+					_continue
+				}
+				; 長さを計測
+				int_comp_i = LineCheck( cx, cy, cm )
+				int_comp_j = LineCheck( cx, cy, cn )
+				clen2 = int_comp_i + int_comp_j
+				if ( clen2 > 1 ) {
+					; ５個揃ってない石の場合、左右に伸びていないとスルー＆末端だとスルー
+					if (( clen2 < 4 ) & (( int_comp_i = 0 ) | ( int_comp_j = 0 ) | ( cp = 0 ) | ( cp = clen ))) {
+						LineCursor cx, cy, cj
+						_continue
+					}
+					;dialog "(x, y) = (" + cx + ", " + cy + ")\nDirection = " + cm + "," + cn + "\nLength = " + clen2
+					int_score += EvalScore( clen + clen2 + 1 )
+					arr_field( int_comp_x, int_comp_y ) = 0
+					LineErase int_comp_x, int_comp_y, cj, int_comp_d(cj)
+					LineErase int_comp_x, int_comp_y, ck, int_comp_d(ck)
+					LineErase cx, cy, cm, int_comp_i
+					LineErase cx, cy, cn, int_comp_j
+					; 中断
+					clen = 0
+					_break
+				}
+				LineCursor cx, cy, cj
+			next
+			if ( clen = 0 ) {
+				; 十字消し成功後、座標初期化
+				dim int_comp_d, 8
 			}
-			; 通常消し
-			if ( cx > 3 ) {
-				int_score += EvalScore( cx + 1 )
+		}
 
-				arr_field( int_comp_x, int_comp_y ) = 0
+		; 通常消し
+		if ( clen > 3 ) {
+			int_score += EvalScore( clen + 1 )
 
-				ci = cj :gosub *complete_erase
-				ci = ck :gosub *complete_erase
-				_break
-			}
+			arr_field( int_comp_x, int_comp_y ) = 0
+
+			LineErase int_comp_x, int_comp_y, cj, int_comp_d(cj)
+			LineErase int_comp_x, int_comp_y, ck, int_comp_d(ck)
+			_break
 		}
 	next
 
-	return
-
-*complete_erase
-	cx = int_comp_x
-	cy = int_comp_y
-	for co, 0, int_comp_d(ci), 1
-		gosub *complete_cursor
-		arr_field( cx, cy ) = 0
-	next
-	return
-
-*complete_cursor
-	switch ci
-	case 0: cx--: cy++ :swbreak
-	case 1: cy++       :swbreak
-	case 2: cx++: cy++ :swbreak
-	case 3: cx--       :swbreak
-	case 4: cx++       :swbreak
-	case 5: cx--: cy-- :swbreak
-	case 6: cy--       :swbreak
-	case 7: cx++: cy-- :swbreak
-	swend
 	return
 
 *status_bar

@@ -104,6 +104,62 @@ g_screen_view_y = g_screen_y - ( g_font_y * 2)
 #defcfunc MovableArrGet int _x, int _y
 	; 返り値 : 0なら移動不可、1なら移動可能
 	return r( _x, _y )
+
+#global
+
+#module
+#deffunc LineCursor var _a, var _b, int _c
+	; 座標のカーソル変更
+	dim cursor_x, 8 :cursor_x = -1,  0,  1, -1,  1, -1,  0,  1
+	dim cursor_y, 8 :cursor_y =  1,  1,  1,  0,  0, -1, -1, -1
+	_a += cursor_x(_c)
+	_b += cursor_y(_c)
+
+	return
+
+#defcfunc LineCheck int _x, int _y, int _i
+	; 一列に並んだ同じ色の数をチェックする
+	; _x, _y : x座標とy座標
+	; _i     : 向き
+	; 返り値 : 同じ色の数
+	cx = _x
+	cy = _y
+	ret = 0
+	do
+		LineCursor cx, cy, _i
+		if (( cx < 0 ) || ( 8 < cx ) || ( cy < 0 ) || ( 8 < cy )) :_break
+		if ( arr_field@( cx, cy ) = arr_field@( _x, _y )) {
+			ret++
+		} else {
+			_break
+		}
+	until (0)
+
+	return ret
+
+#deffunc LineCheckAll int _x, int _y
+	; 一列に並んだ同じ色の数をチェックする
+	; _x, _y : x座標とy座標
+	; 返り値は返さずグローバル配列にセット（改善要項）
+	for i, 0, 8, 1
+		int_comp_d@(i) = LineCheck( _x, _y, i )
+	next
+
+	return
+
+#deffunc LineErase int _x, int _y, int _i, int _n
+	; 一列に並んだ同じ色の数を消す
+	; _x, _y : x座標とy座標
+	; _i : 向き
+	; _n ; 消す数
+	cx = _x
+	cy = _y
+	for co, 0, _n, 1
+		LineCursor cx, cy, _i
+		arr_field@( cx, cy ) = 0
+	next
+	return
+
 #global
 
 #module

@@ -20,9 +20,9 @@ for i, 0, 12, 1
 		case 2 :r = 255: g = 255: b =   0 :swbreak
 		case 3 :r =   0: g = 187: b =  34 :swbreak
 		case 4 :r =   0: g = 221: b = 255 :swbreak
-		case 5 :r =   0: g =  34: b = 255 :swbreak
+		case 5 :r =   0: g =  34: b = 204 :swbreak
 		case 6 :r = 255: g =   0: b = 221 :swbreak
-		case 7 :r = 153: g = 153: b = 153 :swbreak
+		case 7 :r = 136: g = 136: b = 136 :swbreak
 		swend
 
 		color 204 + (r/5), 204 + (g/5), 204 + (b/5)
