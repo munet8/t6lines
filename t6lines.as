@@ -1,6 +1,6 @@
 ;-------------------------------------------------------------------------------
 ; コンパイルオプション
-#packopt name "mulines.exe"
+#packopt name "t6lines.exe"
 #packopt type 0
 #packopt xsize 320
 #packopt ysize 480
