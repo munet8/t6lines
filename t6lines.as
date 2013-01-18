@@ -5,6 +5,7 @@
 #packopt xsize 320
 #packopt ysize 480
 #pack "fon_cha1.png"
+#pack "fon_cha2.png"
 #pack "fon_ball.png"
 
 ;-------------------------------------------------------------------------------

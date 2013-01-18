@@ -21,12 +21,15 @@ celload "fon_cha1.png", 2
 celdiv 2, g_font_png_x, g_font_png_y, 0, 0
 
 ; フォント画像のロード（全角）
-;celload "fon_cha2.png", 3
-;celdiv 3, g_font_png_y, g_font_png_y, 0, 0
+celload "fon_cha2.png", 3
+celdiv 3, g_font_png_y, g_font_png_y, 0, 0
 
 ; フォント画像のロード（全角）
 celload "fon_ball.png", 4
-celdiv 4, 48, 48, 0, 0
+celdiv 4, g_ball_size, g_ball_size, 0, 0
+
+buffer 5, g_ball_size, g_ball_size, 0
+gsel 0
 
 int_mousex = 0
 int_mousey = 0
@@ -40,8 +43,10 @@ MovableArrInit
 ; スコア
 int_score = 0
 
+; 選択状態
 int_selected_x = -1
 int_selected_y = -1
+float_rotate = 0.0
 
 int_vanish = 255
 int_gameover = 1
@@ -92,12 +97,18 @@ gosub *make_next
 					gosub *select
 				}
 			}
-		}
-		if ( int_mousey >= ( g_screen_view_y + g_font_y )) {
-			if ( int_mousex < ( g_screen_x / 2 )) {
-				goto *first
+		} else {
+			; ステータスバー
+			if ( int_mousey >= ( g_screen_view_y + g_font_y )) {
+				if ( int_mousex < ( g_screen_x / 2 )) {
+					goto *first
+				} else {
+					gosub *exit
+				}
 			} else {
-				gosub *exit
+				; 選択解除
+				int_selected_x = -1
+				int_selected_y = -1
 			}
 		}
 	}
@@ -109,8 +120,7 @@ gosub *make_next
 	redraw 0
 	gfilter 1
 
-	color 0, 0, 0
-	boxf 0, 0, g_screen_x, g_screen_y
+	color 0, 0, 0 :boxf
 
 	if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 )) {
 		color 85, 85, 85
@@ -131,11 +141,23 @@ gosub *make_next
 			pos m, n
 			if ( arr_field(i, j) ) {
 				gmode 5, 0, 0, 255
-				celput 4, arr_field(i, j), f, g
+				if (( i = int_selected_x ) & ( j = int_selected_y )) {
+					; 選択中は回転する
+					float_rotate += 0.1
+					if ( float_rotate >= ( 2 * M_PI )) :float_rotate -= 2 * M_PI
+					m = ( 2 * i + 2 ) * g_screen_x / 20
+					n = ( 2 * j + 2 ) * g_screen_view_y / 20
+					pos m, n
+					gmode 5, g_ball_size, g_ball_size, 255
+					grotate 4, g_ball_size * arr_field( i, j), 0, float_rotate, f * g_ball_size, g * g_ball_size
+				} else {
+					celput 4, arr_field(i, j), f, g
+				}
 				gmode 0
 			} else {
 				if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 ) & ( MovableArrGet(i, j) = 0 )) {
 					color 255, 255, 255
+					; 移動できない場合、ペケを描く
 					m = ( 2 * i + 3 ) * g_screen_x / 20
 					n = ( 2 * j + 3 ) * g_screen_view_y / 20
 					line m, n
@@ -194,7 +216,7 @@ gosub *make_next
 
 	; 描画
 	color int_vanish / 5, 0, 0
-	boxf 0, 0, g_screen_x, g_screen_y
+	boxf
 
 	; 描画・ボール
 	f = double( 0.1 * g_screen_x / g_ball_size )
@@ -266,8 +288,7 @@ gosub *make_next
 	gfilter 1
 
 	; 描画
-	color 0, 0, 0
-	boxf 0, 0, g_screen_x, g_screen_y
+	color 0, 0, 0 :boxf
 
 	stick int_stk, 0 :if ( int_stk & 256 ) {
 		int_mousex = mousex
@@ -288,9 +309,9 @@ gosub *make_next
 	pos 2 * g_font_x, 1 * g_font_y
 	fprint "Your score is " + int_score + ".", 255
 	pos 2 * g_font_x, 3 * g_font_y
-	fprint "tan6 lines v1.1", 255
+	fprint "tan6 lines｡ v1.2", 255
 	pos 2 * g_font_x, 4 * g_font_y
-	fprint "2012(C) m-ushi", 255
+	fprint "2012-2013(C) m-ushi", 255
 
 	gosub *status_bar
 
@@ -368,6 +389,8 @@ gosub *make_next
 *select
 	int_selected_x = i
 	int_selected_y = j
+	float_rotate = 0.0
+
 	MovableArrInit
 	MovableArrSet i, j
 	return

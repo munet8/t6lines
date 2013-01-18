@@ -1,0 +1,50 @@
+; fon_char2.bmp 作成
+
+g_x = 32
+g_y = 32
+
+screen 0, g_x*2, g_y*1, 0
+
+color 0, 0, 0
+j=0
+boxf 0, j*g_y, 12*g_x, (j+1)*g_y
+for i, 0, 12, 1
+	color 255, 255, 255
+
+	c=""
+	switch i
+	case 1
+		font "VL ゴシック",11
+		pos i*g_x+19, j*g_y+1
+		mes "●"
+		pos i*g_x+6, j*g_y+13
+		mes "●"
+		font "VL ゴシック",18
+		pos i*g_x+14, j*g_y-2
+		mes "○"
+		pos i*g_x+1, j*g_y+10
+		mes "○"
+		swbreak
+	swend
+	mes c
+next
+
+; 補助線
+
+color 102,102,102
+
+/*for i, 0, 7, 1
+	line 0, i*g_y, 16*g_x, i*g_y
+next
+
+for i, 0, 17, 1
+	line i*g_x, 0, i*g_x, 512
+next*/
+onclick *save
+stop
+
+*save
+
+bmpsave "fon_cha2.bmp"
+
+end

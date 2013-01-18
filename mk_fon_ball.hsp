@@ -17,11 +17,11 @@ for i, 0, 12, 1
 		c = "●"
 		switch i
 		case 1 :r = 238: g =   0: b =  51 :swbreak
-		case 2 :r = 255: g = 255: b =   0 :swbreak
+		case 2 :r = 221: g = 221: b =   0 :swbreak
 		case 3 :r =   0: g = 187: b =  34 :swbreak
-		case 4 :r =   0: g = 221: b = 255 :swbreak
+		case 4 :r =  34: g = 221: b = 238 :swbreak
 		case 5 :r =   0: g =  34: b = 204 :swbreak
-		case 6 :r = 255: g =   0: b = 221 :swbreak
+		case 6 :r = 238: g =   0: b = 221 :swbreak
 		case 7 :r = 136: g = 136: b = 136 :swbreak
 		swend
 
@@ -38,6 +38,16 @@ for i, 0, 12, 1
 		color r, g, b
 		font "VL ゴシック",44
 		pos i*g_x+3, j*g_y-4
+		mes c
+
+		color 170 + (r/3), 170 + (g/3), 170 + (b/3)
+		font "VL ゴシック",22
+		pos i*g_x+21, j*g_y+2
+		mes c
+
+		color 204 + (r/5), 204 + (g/5), 204 + (b/5)
+		font "VL ゴシック",16
+		pos i*g_x+24, j*g_y+5
 		mes c
 
 	}
