@@ -46,6 +46,7 @@ int_score = 0
 ; 選択状態
 int_selected_x = -1
 int_selected_y = -1
+int_selected_movable = 0
 float_rotate = 0.0
 
 int_vanish = 255
@@ -123,7 +124,7 @@ gosub *make_next
 	color 0, 0, 0 :boxf
 
 	if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 )) {
-		color 85, 85, 85
+		color 51, 51, 51
 		i = ( 2 * int_selected_x + 1 ) * g_screen_x / 20
 		j = ( 2 * int_selected_y + 1 ) * g_screen_view_y / 20
 		m = ( 2 * int_selected_x + 3 ) * g_screen_x / 20
@@ -141,16 +142,17 @@ gosub *make_next
 			pos m, n
 			if ( arr_field(i, j) ) {
 				gmode 5, 0, 0, 255
-				if (( i = int_selected_x ) & ( j = int_selected_y )) {
+				if (( i = int_selected_x ) & ( j = int_selected_y ) & int_selected_movable) {
 					; 選択中は回転する
-					float_rotate += 0.1
+					float_rotate += 0.12
 					if ( float_rotate >= ( 2 * M_PI )) :float_rotate -= 2 * M_PI
 					m = ( 2 * i + 2 ) * g_screen_x / 20
 					n = ( 2 * j + 2 ) * g_screen_view_y / 20
 					pos m, n
 					gmode 5, g_ball_size, g_ball_size, 255
-					grotate 4, g_ball_size * arr_field( i, j), 0, float_rotate, f * g_ball_size, g * g_ball_size
+					grotate 4, g_ball_size * arr_field( i, j ), 0, float_rotate, f * g_ball_size, g * g_ball_size
 				} else {
+					; 選択しなければor動けないならば普通に置く
 					celput 4, arr_field(i, j), f, g
 				}
 				gmode 0
@@ -393,6 +395,8 @@ gosub *make_next
 
 	MovableArrInit
 	MovableArrSet i, j
+	int_selected_movable = ( MovableArrGet( i-1, j ) | MovableArrGet( i+1, j ) | MovableArrGet( i, j-1 ) | MovableArrGet( i, j+1 ))
+
 	return
 
 ; 完成チェック

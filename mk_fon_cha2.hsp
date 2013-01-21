@@ -14,10 +14,10 @@ for i, 0, 12, 1
 	c=""
 	switch i
 	case 1
-		font "VL ゴシック",11
-		pos i*g_x+19, j*g_y+1
+		font "VL ゴシック",9
+		pos i*g_x+21, j*g_y+1
 		mes "●"
-		pos i*g_x+6, j*g_y+13
+		pos i*g_x+8, j*g_y+13
 		mes "●"
 		font "VL ゴシック",18
 		pos i*g_x+14, j*g_y-2

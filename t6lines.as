@@ -104,6 +104,8 @@ g_screen_view_y = g_screen_y - ( g_font_y * 2)
 
 #defcfunc MovableArrGet int _x, int _y
 	; 返り値 : 0なら移動不可、1なら移動可能
+	if (( _x < 0 ) | ( 9 <= _x )) :return 0
+	if (( _y < 0 ) | ( 9 <= _y )) :return 0
 	return r( _x, _y )
 
 #global
@@ -171,5 +173,4 @@ g_screen_view_y = g_screen_y - ( g_font_y * 2)
 
 	y = ( 2 * _x * _x ) - ( 20 * _x ) + 60
 	return y
-
 #global
