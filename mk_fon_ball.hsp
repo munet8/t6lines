@@ -1,7 +1,12 @@
 ; fon_char2.bmp 作成
+#include "hspcv.as"
 
 g_x = 48
 g_y = 48
+
+dim r, 5
+dim g, 5
+dim b, 5
 
 screen 0, g_x*8, g_y*1, 0
 
@@ -16,36 +21,76 @@ for i, 0, 12, 1
 	if ( i >= 1 ) {
 		c = "●"
 		switch i
-		case 1 :r = 238: g =   0: b =  51 :swbreak
-		case 2 :r = 221: g = 221: b =   0 :swbreak
-		case 3 :r =   0: g = 187: b =  34 :swbreak
-		case 4 :r =  34: g = 221: b = 238 :swbreak
-		case 5 :r =   0: g =  34: b = 204 :swbreak
-		case 6 :r = 238: g =   0: b = 221 :swbreak
-		case 7 :r = 136: g = 136: b = 136 :swbreak
+		case 1
+			r(0) = 238: g(0) =   0: b(0) =  51
+			r(1) = 255: g(1) = 170: b(1) = 187
+			r(2) = 255: g(2) = 238: b(2) = 221
+			r(3) = 153: g(3) =   0: b(3) =  17
+			swbreak
+		case 2
+			r(0) = 221: g(0) = 221: b(0) =   0
+			r(1) = 238: g(1) = 238: b(1) = 170
+			r(2) = 255: g(2) = 255: b(2) = 255
+			r(3) = 119: g(3) = 119: b(3) =   0
+			swbreak
+		case 3
+			r(0) =   0: g(0) = 187: b(0) =  34
+			r(1) = 170: g(1) = 221: b(1) = 187
+			r(2) = 204: g(2) = 255: b(2) = 221
+			r(3) =   0: g(3) = 119: b(3) =   0
+			swbreak
+		case 4
+			r(0) =  34: g(0) = 221: b(0) = 238
+			r(1) = 187: g(1) = 238: b(1) = 255
+			r(2) = 238: g(2) = 255: b(2) = 255
+			r(3) =   0: g(3) = 119: b(3) = 119
+			swbreak
+		case 5
+			r(0) =   0: g(0) =  34: b(0) = 204
+			r(1) = 170: g(1) = 187: b(1) = 238
+			r(2) = 221: g(2) = 238: b(2) = 255
+			r(3) =   0: g(3) =   0: b(3) =  68
+			swbreak
+		case 6
+			r(0) = 238: g(0) =   0: b(0) = 221
+			r(1) = 255: g(1) = 170: b(1) = 238
+			r(2) = 255: g(2) = 204: b(2) = 255
+			r(3) = 153: g(3) =   0: b(3) = 136
+			swbreak
+		case 7
+			r(0) = 136: g(0) = 119: b(0) = 102
+			r(1) = 221: g(1) = 204: b(1) = 187
+			r(2) = 255: g(2) = 238: b(2) = 221
+			r(3) =  85: g(3) =  68: b(3) =  51
+			swbreak
 		swend
 
-		color 204 + (r/5), 204 + (g/5), 204 + (b/5)
+		color r(2), g(2), b(2)
 		font "VL ゴシック",48
 		pos i*g_x+1, j*g_y-6
 		mes c
 
-		color 170 + (r/3), 170 + (g/3), 170 + (b/3)
+		color r(1), g(1), b(1)
 		font "VL ゴシック",46
 		pos i*g_x+2, j*g_y-5
 		mes c
 
-		color r, g, b
+		color r(0), g(0), b(0)
 		font "VL ゴシック",44
 		pos i*g_x+3, j*g_y-4
 		mes c
 
-		color 170 + (r/3), 170 + (g/3), 170 + (b/3)
+		color r(3), g(3), b(3)
+		font "VL ゴシック",44
+		pos i*g_x+3, j*g_y-4
+		mes "○"
+
+		color r(1), g(1), b(1)
 		font "VL ゴシック",22
 		pos i*g_x+21, j*g_y+2
 		mes c
 
-		color 204 + (r/5), 204 + (g/5), 204 + (b/5)
+		color r(2), g(2), b(2)
 		font "VL ゴシック",16
 		pos i*g_x+24, j*g_y+5
 		mes c
@@ -69,6 +114,8 @@ stop
 
 *save
 
-bmpsave "fon_ball.bmp"
+cvbuffer 0
+cvputimg 0
+cvsave "fon_ball.png", 0
 
 end

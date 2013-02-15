@@ -146,8 +146,8 @@ gosub *make_next
 					; ‘I‘ð’†‚Í‰ñ“]‚·‚é
 					float_rotate += 0.12
 					if ( float_rotate >= ( 2 * M_PI )) :float_rotate -= 2 * M_PI
-					m = ( 2 * i + 2 ) * g_screen_x / 20
-					n = ( 2 * j + 2 ) * g_screen_view_y / 20
+					m = ( i + 1 ) * g_screen_x / 10
+					n = ( j + 1 ) * g_screen_view_y / 10
 					pos m, n
 					gmode 5, g_ball_size, g_ball_size, 255
 					grotate 4, g_ball_size * arr_field( i, j ), 0, float_rotate, f * g_ball_size, g * g_ball_size
@@ -186,10 +186,7 @@ gosub *make_next
 	next
 
 	; Score
-	pos g_font_x, g_screen_view_y
-	fprint "Score: ", 255
-	pos ( 11 - log10(int_score) ) * g_font_x, g_screen_view_y
-	fprint "" + int_score, 255
+	gosub *print_score
 
 	; Next
 	pos g_screen_x / 2, g_screen_view_y
@@ -262,10 +259,7 @@ gosub *make_next
 	next
 
 	; Score
-	pos g_font_x, g_screen_view_y
-	fprint "Score: ", 255
-	pos ( 11 - log10(int_score) ) * g_font_x, g_screen_view_y
-	fprint "" + int_score, 255
+	gosub *print_score
 
 	; Next
 	pos g_screen_x / 2, g_screen_view_y
@@ -491,6 +485,32 @@ gosub *make_next
 		pos ( 3 * g_screen_x / 4 ) - ( 2 * g_font_x ), g_screen_view_y + g_font_y
 		fprint "Exit", 255
 	}
+
+	return
+
+*print_score
+	pos g_font_x, g_screen_view_y
+	fprint "Score: ", 255
+	switch log10(int_score)
+	case 5
+	case 6
+		i = int_score / 1000
+		s = "" + i + "k"
+		pos ( 13 - log10(int_score) ) * g_font_x, g_screen_view_y
+		swbreak
+	case 7
+	case 8
+	case 9
+		i = int_score / 1000000
+		s = "" + i + "M"
+		pos ( 16 - log10(int_score) ) * g_font_x, g_screen_view_y
+		swbreak
+	default
+		s = "" + int_score
+		pos ( 11 - log10(int_score) ) * g_font_x, g_screen_view_y
+		swbreak
+	swend
+	fprint s, 255
 
 	return
 
