@@ -489,18 +489,18 @@ gosub *make_next
 	return
 
 *print_score
-	pos g_font_x, g_screen_view_y
+	pos 0, g_screen_view_y
 	fprint "Score: ", 255
 	switch log10(int_score)
-	case 5
 	case 6
+	case 7
 		i = int_score / 1000
 		s = "" + i + "k"
 		pos ( 13 - log10(int_score) ) * g_font_x, g_screen_view_y
 		swbreak
-	case 7
 	case 8
 	case 9
+	case 10
 		i = int_score / 1000000
 		s = "" + i + "M"
 		pos ( 16 - log10(int_score) ) * g_font_x, g_screen_view_y
