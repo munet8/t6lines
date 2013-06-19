@@ -1,5 +1,8 @@
 #include "hsp3util.as"
 
+; imagemagickの場所
+g_imagemagick = "C:\\usr\\program\\imagemagick\\convert.exe"
+
 ; fon_char.bmp 作成
 
 	screen 0, 300, 300, 4
@@ -41,11 +44,9 @@
 *fon_cha1_save
 	gsel 1
 	gosub *fon_cha1_draw
-	bmpsave "fon_cha1.bmp"
-	exec "fon_cha1.bmp", 16, "edit"
 
-	gsel 1, -1
-	goto *startx
+	fname = "fon_cha1"
+	goto *fon_save_common
 
 ; fon_cha2.png プレビュー
 *fon_cha2
@@ -69,11 +70,9 @@
 *fon_cha2_save
 	gsel 1
 	gosub *fon_cha2_draw
-	bmpsave "fon_cha2.bmp"
-	exec "fon_cha2.bmp", 16, "edit"
 
-	gsel 1, -1
-	goto *startx
+	fname = "fon_cha2"
+	goto *fon_save_common
 
 ; fon_ball.png プレビュー
 *fon_ball
@@ -97,8 +96,17 @@
 *fon_ball_save
 	gsel 1
 	gosub *fon_ball_draw
-	bmpsave "fon_ball.bmp"
-	exec "fon_ball.bmp", 16, "edit"
+
+	fname = "fon_ball"
+	goto *fon_save_common
+
+; 保存共通処理
+*fon_save_common
+	
+	bmpsave fname + ".bmp"
+	exec g_imagemagick + " -colors 256 " + fname + ".bmp " + fname + ".png"
+	wait 5
+	delete fname + ".bmp"
 
 	gsel 1, -1
 	goto *startx
@@ -116,7 +124,8 @@
 			c = " "
 			n = j*16 + i + 32
 			poke c, 0, n
-			pos i*g_x+2, j*g_y-2
+			if ( i = 15 ) & ( j = 5 ) :c = "ﾟ"
+			pos i*g_x+2, j*g_y+2
 			font "VL ゴシック",27
 			mes c
 		next
@@ -135,14 +144,14 @@
 		switch i
 		case 1
 			font "VL ゴシック",9
-			pos i*g_x+21, j*g_y+1
+			pos i*g_x+21, j*g_y+3
 			mes "●"
-			pos i*g_x+8, j*g_y+13
+			pos i*g_x+8, j*g_y+16
 			mes "●"
 			font "VL ゴシック",18
-			pos i*g_x+14, j*g_y-2
+			pos i*g_x+14, j*g_y
 			mes "○"
-			pos i*g_x+1, j*g_y+10
+			pos i*g_x+1, j*g_y+13
 			mes "○"
 			swbreak
 		swend
@@ -209,33 +218,33 @@
 			swend
 
 			color r(2), g(2), b(2)
-			font "VL ゴシック",48
-			pos i*g_x+1, j*g_y-6
+			font "VL ゴシック",49
+			pos i*g_x+1, j*g_y-2
 			mes c
 
 			color r(1), g(1), b(1)
 			font "VL ゴシック",46
-			pos i*g_x+2, j*g_y-5
+			pos i*g_x+2, j*g_y-1
 			mes c
 
 			color r(0), g(0), b(0)
 			font "VL ゴシック",44
-			pos i*g_x+3, j*g_y-4
+			pos i*g_x+3, j*g_y
 			mes c
 
 			color r(3), g(3), b(3)
 			font "VL ゴシック",44
-			pos i*g_x+3, j*g_y-4
+			pos i*g_x+3, j*g_y
 			mes "○"
 
 			color r(1), g(1), b(1)
 			font "VL ゴシック",22
-			pos i*g_x+21, j*g_y+2
+			pos i*g_x+21, j*g_y+6
 			mes c
 
 			color r(2), g(2), b(2)
 			font "VL ゴシック",16
-			pos i*g_x+24, j*g_y+5
+			pos i*g_x+24, j*g_y+9
 			mes c
 
 		}
