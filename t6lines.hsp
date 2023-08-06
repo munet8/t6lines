@@ -11,11 +11,6 @@ title "tan6 lines"
 
 *first
 
-getreq int_os, SYSREQ_PLATFORM           ; OS識別
-flag_is_ios     = (int_os = 1)
-flag_is_android = (int_os = 2)
-flag_is_windows = (int_os = 0)
-
 ; フォント画像のロード（半角）
 celload "fon_cha1.png", 2
 celdiv 2, g_font_png_x, g_font_png_y, 0, 0
@@ -101,11 +96,7 @@ gosub *make_next
 		} else {
 			; ステータスバー
 			if ( int_mousey >= ( g_screen_view_y + g_font_y )) {
-				if ( int_mousex < ( g_screen_x / 2 )) {
-					goto *first
-				} else {
-					gosub *exit
-				}
+				goto *first
 			} else {
 				; 選択解除
 				int_selected_x = -1
@@ -210,9 +201,6 @@ gosub *make_next
 	redraw 0
 	gfilter 1
 
-	stick int_stk, 256
-	if ( int_stk & 128 ) :gosub *exit
-
 	; 描画
 	color int_vanish / 5, 0, 0
 	boxf
@@ -290,16 +278,10 @@ gosub *make_next
 		int_mousex = mousex
 		int_mousey = mousey
 		if ( int_mousey >= ( g_screen_view_y + g_font_y )) {
-			if ( int_mousex < ( g_screen_x / 2 )) {
-				goto *first
-			} else {
-				gosub *exit
-			}
+			goto *first
 		}
 	} else {
-		if ( int_stk ) {
-			if ( int_stk & 128 ) :gosub *exit :else :goto *first
-		}
+		if ( int_stk ) :goto *first
 	}
 
 	pos 2 * g_font_x, 1 * g_font_y
@@ -477,14 +459,9 @@ gosub *make_next
 
 	color 255, 255, 255
 	line 0, g_screen_view_y + g_font_y, g_screen_x, g_screen_view_y + g_font_y
-	line g_screen_x / 2, g_screen_view_y + g_font_y, g_screen_x / 2, g_screen_y
 
-	pos ( 1 * g_screen_x / 4 ) - ( 5 * g_font_x / 2 ), g_screen_view_y + g_font_y
+	pos ( 2 * g_screen_x / 4 ) - ( 5 * g_font_x / 2 ), g_screen_view_y + g_font_y
 	fprint "Retry", 255
-	if ( flag_is_ios ^ 1 ) {
-		pos ( 3 * g_screen_x / 4 ) - ( 2 * g_font_x ), g_screen_view_y + g_font_y
-		fprint "Exit", 255
-	}
 
 	return
 
@@ -512,8 +489,4 @@ gosub *make_next
 	swend
 	fprint s, 255
 
-	return
-
-*exit
-	if ( flag_is_ios ^ 1 ) :end 0
 	return
