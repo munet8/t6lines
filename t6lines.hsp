@@ -50,6 +50,9 @@ int_gameover = 1
 ; 乱数初期化
 randomize
 
+; 画面クリア設定
+setcls CLSMODE_SOLID, 0
+
 ; フィールド初期配置
 gosub *make_next
 gosub *ball_set
@@ -111,8 +114,6 @@ gosub *make_next
 	; 描画
 	redraw 0
 	gfilter 1
-
-	color 0, 0, 0 :boxf
 
 	if (( int_selected_x >= 0 ) & ( int_selected_y >= 0 )) {
 		color 51, 51, 51
