@@ -204,7 +204,7 @@ gosub *make_next
 
 	; •`‰æ
 	color int_vanish / 5, 0, 0
-	boxf
+	boxf 0, 0, g_screen_x, g_screen_y
 
 	; •`‰æEƒ{[ƒ‹
 	f = double( 0.1 * g_screen_x / g_ball_size )
@@ -271,9 +271,6 @@ gosub *make_next
 *menu
 	redraw 0
 	gfilter 1
-
-	; •`‰æ
-	color 0, 0, 0 :boxf
 
 	stick int_stk, 0 :if ( int_stk & 256 ) {
 		int_mousex = mousex
